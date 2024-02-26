@@ -6,6 +6,7 @@
 2. 在 [KVRaft](https://github.com/1055373165/KVRaft) 中实现了使用 Raft 做一致性保证的分布式 KV 服务；
 
 本部分以上面两个库为基础实现了支持分片的分布式 KV 存储系统 shardkv，shardkv 是由多个 Replica Group 组成，
+
 每个 Replica Group 负责一部分 shard 的读写请求，每个 Replica Group 又是一个 Raft 集群，所有的 Group 组合到一起就是一个完整的 shardkv 服务。
 
 # 代码组织结构
