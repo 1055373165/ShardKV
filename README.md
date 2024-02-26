@@ -8,6 +8,52 @@
 
 每个 Replica Group 负责一部分 shard 的读写请求，每个 Replica Group 又是一个 Raft 集群，所有的 Group 组合到一起就是一个完整的 shardkv 服务。
 
+# 代码组织结构
+```
+.
+├── README.md
+├── go.mod
+├── kvraft
+│   ├── client.go
+│   ├── common.go
+│   ├── config.go
+│   ├── server.go
+│   ├── state_machine.go
+│   └── test_test.go
+├── raft
+│   ├── README.md
+│   ├── config.go
+│   ├── persister.go
+│   ├── raft.go
+│   ├── raft_application.go
+│   ├── raft_compaction.go
+│   ├── raft_election.go
+│   ├── raft_log.go
+│   ├── raft_persistence.go
+│   ├── raft_replication.go
+│   ├── test_test.go
+│   └── util.go
+├── resources
+│   ├── 2024-02-26-03-43-07.png
+│   └── 2024-02-26-22-29-49.png
+├── shardctrler
+│   ├── client.go
+│   ├── common.go
+│   ├── config.go
+│   ├── server.go
+│   ├── state_machine.go
+│   └── test_test.go
+└── shardkv
+    ├── client.go
+    ├── common.go
+    ├── conf_change.go
+    ├── config.go
+    ├── server.go
+    ├── state_machine.go
+    ├── task.go
+    └── test_test.go
+```
+
 # shardkv 介绍
 ## 核心组件
 核心包含以下部分：
