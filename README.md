@@ -34,8 +34,6 @@
 │   ├── test_test.go
 │   └── util.go
 ├── resources
-│   ├── 2024-02-26-03-43-07.png
-│   └── 2024-02-26-22-29-49.png
 ├── shardctrler
 │   ├── client.go
 │   ├── common.go
