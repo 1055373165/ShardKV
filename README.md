@@ -11,11 +11,11 @@
 # shardkv 介绍
 ## 核心组件
 核心包含以下部分：
-- shardkv controller
+- **shardkv controller**
   - 本身也是一个分布式 KV 服务，它存储的是 shardkv 的一些配置信息（比如分片和 group 之间的映射关系，类似于 dragonfly 二开中的 Meta 元数据组件）；
   - 提供了 Query、Join、Leave、Move 方法来控制分片和 Group 之间的关系，然后通过 raft 模块进行各个节点之间的状态同步；
   - 当 raft 模块状态同步完成之后，节点会发送已经 commit 的日志，然后后台 apply goroutine 进行处理，主要是将用户的操作持久化到状态机中。
-- shardkv server
+- **shardkv server**
   - 配置变更：RaftCommand 的一种命令形式，可以根据配置判断哪些分片需要进行迁移、清理，配置变更仅用于改变分片状态而不作分片迁移工作；配置变更时更改 shard 的状态，并且启动一个后台线程，定期获取 shard 的状态，执行实际的 shard 迁移。
   - 分片迁移：记录前一个配置中分片所属的 Group，从原 Group 拉取分片数据到新的 Group 中；
     - 问题 1：shard 迁移涉及网络 IO 可能需要较长时间，apply goroutine 一直阻塞等待；
