@@ -1,5 +1,7 @@
 #  项目简介
 
+本项目基于两个子项目，分别在另外两个 github 库中实现；
+
 在 MIT-8.624-Raft 中实现了 [Raft 库](https://github.com/1055373165/MIT-8.624-Raft)；
 
 在 [KVRaft](https://github.com/1055373165/KVRaft) 中实现了使用 Raft 做一致性保证的分布式 KV 服务；
