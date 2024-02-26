@@ -16,26 +16,31 @@ func (kv *ShardKV) applyTask() {
 				}
 				kv.lastApplied = message.CommandIndex
 
-				// 取出用户的操作信息
-				op := message.Command.(Op)
-				var opReply *OpReply
-				if op.OpType != OpGet && kv.requestDuplicated(op.ClientId, op.SeqId) {
-					opReply = kv.duplicateTable[op.ClientId].Reply
-				} else {
-					// 将操作应用状态机中
-					opReply = kv.applyToStateMachine(op)
-					if op.OpType != OpGet {
-						kv.duplicateTable[op.ClientId] = LastOperationInfo{
-							SeqId: op.SeqId,
-							Reply: opReply,
+				var reply *OpReply
+				// retrieve user action information
+				raftCmd := message.Command.(RaftCommand)
+				if raftCmd.CmdType == ClientOperation {
+					op := raftCmd.Data.(Op)
+					if op.OpType != OpGet && kv.requestDuplicated(op.ClientId, op.SeqId) { // Repeated requests
+						reply = kv.duplicateTable[op.ClientId].Reply
+					} else { // New requests are applied to the state machine
+						shardId := key2shard(op.Key)
+						reply = kv.applyToStateMachine(op, shardId)
+						if op.OpType != OpGet {
+							kv.duplicateTable[op.ClientId] = LastOperationInfo{
+								SeqId: op.SeqId,
+								Reply: reply,
+							}
 						}
 					}
+				} else {
+					reply = kv.handleConfigChangeMessage(raftCmd)
 				}
 
 				// 将结果发送回去
 				if _, isLeader := kv.rf.GetState(); isLeader {
 					notifyCh := kv.getNotifyChannel(message.CommandIndex)
-					notifyCh <- opReply
+					notifyCh <- reply
 				}
 
 				// 判断是否需要 snapshot
@@ -58,9 +63,13 @@ func (kv *ShardKV) applyTask() {
 func (kv *ShardKV) fetchConfigTask() {
 	for !kv.killed() {
 		kv.mu.Lock()
-		newConfig := kv.mck.Query(-1)
-		kv.currentConfig = newConfig
+		newConfig := kv.mck.Query(kv.currentConfig.Num + 1)
 		kv.mu.Unlock()
+		// pass in the raft module for cluster synchronization
+		kv.ConfigCommand(RaftCommand{
+			CmdType: ConfigChange,
+			Data:    newConfig,
+		}, &OpReply{})
 		time.Sleep(FetchConfigInterval)
 	}
 }
