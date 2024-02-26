@@ -1,6 +1,7 @@
 package shardkv
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
@@ -24,34 +25,19 @@ const (
 	ErrNotReady    = "ErrNotReady"
 )
 
-const (
-	ClientRequestTimeout   = 500 * time.Millisecond
-	FetchConfigInterval    = 100 * time.Millisecond
-	ShardMigrationInterval = 50 * time.Millisecond
-)
-
-const Debug = false
-
-func DPrintf(format string, a ...interface{}) (n int, err error) {
-	if Debug {
-		log.Printf(format, a...)
-	}
-	return
-}
-
 type Err string
 
-// Put or Append
+// PutAppendArgs Put or Append
 type PutAppendArgs struct {
 	// You'll have to add definitions here.
-	Key   string
-	Value string
-	Op    string // "Put" or "Append"
+	Key      string
+	Value    string
+	Op       string // "Put" or "Append"
+	ClientId int64
+	SeqId    int64
 	// You'll have to add definitions here.
 	// Field names must start with capital letters,
 	// otherwise RPC will break.
-	ClientId int64
-	SeqId    int64
 }
 
 type PutAppendReply struct {
@@ -68,12 +54,36 @@ type GetReply struct {
 	Value string
 }
 
+const (
+	ClientRequestTimeout   = 500 * time.Millisecond
+	FetchConfigInterval    = 100 * time.Millisecond
+	ShardMigrationInterval = 50 * time.Millisecond
+	ShardGCInterval        = 50 * time.Millisecond
+)
+
+const Debug = false
+
+func DPrintf(format string, a ...interface{}) (n int, err error) {
+	if Debug {
+		log.Printf(format, a...)
+	}
+	return
+}
+
 type Op struct {
+	// Your definitions here.
+	// Field names must start with capital letters,
+	// otherwise RPC will break.
 	Key      string
 	Value    string
 	OpType   OperationType
 	ClientId int64
 	SeqId    int64
+}
+
+type OpReply struct {
+	Value string
+	Err   Err
 }
 
 type OperationType uint8
@@ -84,11 +94,6 @@ const (
 	OpAppend
 )
 
-type OpReply struct {
-	Value string
-	Err   Err
-}
-
 func getOperationType(v string) OperationType {
 	switch v {
 	case "Put":
@@ -96,13 +101,13 @@ func getOperationType(v string) OperationType {
 	case "Append":
 		return OpAppend
 	default:
-		panic("unknown operation type #{v}")
+		panic(fmt.Sprintf("unknown operation type %s", v))
 	}
 }
 
 type LastOperationInfo struct {
-	Reply *OpReply
 	SeqId int64
+	Reply *OpReply
 }
 
 func (op *LastOperationInfo) copyData() LastOperationInfo {
@@ -118,9 +123,10 @@ func (op *LastOperationInfo) copyData() LastOperationInfo {
 type RaftCommandType uint8
 
 const (
-	ClientOperation RaftCommandType = iota // normal client operation
+	ClientOpeartion RaftCommandType = iota
 	ConfigChange
 	ShardMigration
+	ShardGC
 )
 
 type RaftCommand struct {

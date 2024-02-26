@@ -29,10 +29,9 @@ func (mkv *MemoryKVStateMachine) Append(key, value string) Err {
 	return OK
 }
 
-// deep copy the data in the state machine to a new map
-func (mvk *MemoryKVStateMachine) copyData() map[string]string {
+func (mkv *MemoryKVStateMachine) copyData() map[string]string {
 	newKV := make(map[string]string)
-	for k, v := range mvk.KV {
+	for k, v := range mkv.KV {
 		newKV[k] = v
 	}
 	return newKV
