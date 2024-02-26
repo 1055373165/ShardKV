@@ -1,8 +1,8 @@
 # 简介
 
-在 MIT-8.624-Raft 中实现了 Raft 库；
+在 MIT-8.624-Raft 中实现了 [Raft 库](https://github.com/1055373165/MIT-8.624-Raft)；
 
-在 KVRaft 中实现了使用 Raft 做一致性保证的分布式 KV 服务；
+在 [KVRaft](https://github.com/1055373165/KVRaft) 中实现了使用 Raft 做一致性保证的分布式 KV 服务；
 
 本部分以上面两个库为基础实现了支持分片的分布式 KV 存储系统 shardkv，shardkv 是由多个 Replica Group 组成，
 
